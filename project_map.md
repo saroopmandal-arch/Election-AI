@@ -59,6 +59,7 @@ This document provides a comprehensive overview of the ElectionIQ codebase to as
 - [x] Dockerfile optimized for Cloud Run ($PORT support, .dockerignore).
 - [x] README has full Cloud Run deployment guide.
 - [x] **Uploaded to GitHub** (Public).
+- [x] **Vercel Configuration**: Added `vercel.json` for Serverless FastAPI support.
 
 ## Maintenance Notes
 - **To update the UI**: Modify the string constants or logic in `gen.py`, then run `python gen.py`. Note: The latest UI polish was applied directly to `index.html` — sync `gen.py` if needed.
