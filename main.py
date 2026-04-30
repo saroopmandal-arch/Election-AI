@@ -29,8 +29,16 @@ app.add_middleware(
 
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
+
+# Priority chain for fallback when tokens/rate-limits run out
+MODEL_CHAIN = [
+    GEMINI_MODEL,  # User preferred (e.g. gemini-2.5-flash-lite)
+    "gemini-2.0-flash-lite",
+    "gemini-flash-lite-latest",
+]
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
@@ -66,21 +74,38 @@ async def health():
 
 def send_to_gemini(request: ChatRequest) -> str:
     localized_prompt = SYSTEM_PROMPT + f" IMPORTANT: You must respond entirely in the following language: {request.language}."
-    model = genai.GenerativeModel(
-        model_name=GEMINI_MODEL,
-        system_instruction=localized_prompt,
-    )
+    
+    last_error = None
+    for model_name in MODEL_CHAIN:
+        try:
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=localized_prompt,
+            )
 
-    history = []
-    for msg in request.messages:
-        history.append({
-            "role": msg.role,
-            "parts": [msg.content]
-        })
+            history = []
+            for msg in request.messages:
+                history.append({
+                    "role": msg.role,
+                    "parts": [msg.content]
+                })
 
-    chat_session = model.start_chat(history=history)
-    response = chat_session.send_message(request.user_message)
-    return response.text
+            chat_session = model.start_chat(history=history)
+            response = chat_session.send_message(request.user_message)
+            return response.text
+        except Exception as e:
+            # Catch rate limit / token exhausted errors specifically if possible
+            # Or fallback for any transient generation error
+            error_msg = str(e).lower()
+            if "429" in error_msg or "resource_exhausted" in error_msg or "quota" in error_msg:
+                print(f"Model {model_name} exhausted. Falling back...")
+                last_error = e
+                continue
+            raise e
+    
+    if last_error:
+        raise last_error
+    raise Exception("All models in fallback chain failed.")
 
 
 @app.post("/chat", response_model=ChatResponse)
