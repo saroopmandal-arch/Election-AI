@@ -1,0 +1,432 @@
+import json
+
+# ElectionIQ - generates index.html matching the reference UI design
+TWCFG = """tailwind.config={darkMode:"class",theme:{extend:{colors:{"secondary-fixed-dim":"#c6c6c6","inverse-on-surface":"#f0f0f2","tertiary-container":"#343539","surface-container":"#eeeef0","background":"#f9f9fb","primary-container":"#1d3461","secondary-fixed":"#e2e2e2","surface-variant":"#e2e2e4","on-background":"#1a1c1d","surface-container-highest":"#e2e2e4","primary-fixed":"#d9e2ff","error":"#ba1a1a","on-primary":"#ffffff","on-surface":"#1a1c1d","outline":"#757780","on-primary-container":"#889dd1","secondary-container":"#e2e2e2","tertiary":"#1f2024","secondary":"#5e5e5e","surface-container-high":"#e8e8ea","surface-bright":"#f9f9fb","surface":"#f9f9fb","on-secondary-container":"#646464","on-primary-fixed":"#001943","inverse-surface":"#2f3132","surface-container-low":"#f3f3f5","surface-dim":"#d9dadc","on-surface-variant":"#44464f","primary":"#021e4b","outline-variant":"#c5c6d0","on-error":"#ffffff","surface-container-lowest":"#ffffff","on-secondary":"#ffffff","surface-tint":"#485e8d","primary-fixed-dim":"#b0c6fc"},borderRadius:{DEFAULT:"0.5rem",lg:"1rem",full:"9999px"},spacing:{gutter:"32px","margin-page":"64px","section-gap":"128px","container-max":"1200px"},fontFamily:{display:["Inter"],"headline-md":["Inter"],"headline-lg":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"label-sm":["Inter"],"body-lg":["Inter"]},fontSize:{display:["48px",{lineHeight:"1.1",letterSpacing:"-0.02em",fontWeight:"600"}],"headline-md":["24px",{lineHeight:"1.3",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-lg":["32px",{lineHeight:"1.2",letterSpacing:"-0.01em",fontWeight:"600"}],"label-md":["14px",{lineHeight:"1.4",letterSpacing:"0.01em",fontWeight:"500"}],"body-md":["16px",{lineHeight:"1.5",letterSpacing:"0",fontWeight:"400"}],"label-sm":["12px",{lineHeight:"1.2",letterSpacing:"0.05em",fontWeight:"600"}],"body-lg":["19px",{lineHeight:"1.5",letterSpacing:"-0.01em",fontWeight:"400"}]}}}}"""
+
+NAVBAR = """<nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 w-full shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="max-w-[1200px] mx-auto flex justify-between items-center h-20 px-8 relative z-50 bg-white/0">
+<a id="logo" href="#" onclick="nav('home');return false" class="text-xl font-bold tracking-tighter text-primary-container flex items-center gap-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">how_to_vote</span>ElectionIQ</a>
+<div class="hidden md:flex items-center gap-8 text-sm font-medium font-display tracking-tight">
+<a href="#" onclick="nav('home');return false" class="nav-link" data-page="home">Insights</a>
+<a href="#" onclick="nav('timeline');return false" class="nav-link" data-page="timeline">Timeline</a>
+<a href="#" onclick="nav('guide');return false" class="nav-link" data-page="guide">Guide</a>
+<a href="#" onclick="nav('faq');return false" class="nav-link" data-page="faq">FAQ</a>
+</div>
+<div class="flex items-center gap-4 text-sm font-medium font-display tracking-tight">
+<div class="relative group cursor-pointer hidden sm:flex items-center gap-1 text-primary-container hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">language</span>
+<span id="current-lang-display">English</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+<div class="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
+<div class="bg-white/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/40 rounded-xl py-2 w-40 flex flex-col max-h-80 overflow-y-auto custom-scrollbar">
+<a onclick="setLang('en', 'English')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">English</a>
+<a onclick="setLang('hi', 'Hindi')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Hindi</a>
+<a onclick="setLang('bn', 'Bengali')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Bengali</a>
+<a onclick="setLang('te', 'Telugu')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Telugu</a>
+<a onclick="setLang('mr', 'Marathi')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Marathi</a>
+<a onclick="setLang('ta', 'Tamil')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Tamil</a>
+<a onclick="setLang('ur', 'Urdu')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Urdu</a>
+<a onclick="setLang('gu', 'Gujarati')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Gujarati</a>
+<a onclick="setLang('kn', 'Kannada')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Kannada</a>
+<a onclick="setLang('ml', 'Malayalam')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Malayalam</a>
+<a onclick="setLang('or', 'Odia')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Odia</a>
+<a onclick="setLang('pa', 'Punjabi')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Punjabi</a>
+<a onclick="setLang('as', 'Assamese')" class="px-4 py-2 hover:bg-white/40 text-on-surface transition-colors">Assamese</a>
+</div>
+</div>
+</div>
+<a href="#" onclick="nav('chat');return false" class="text-primary-container hidden sm:block hover:opacity-80 transition-opacity">Ask AI</a>
+<a href="#" onclick="nav('chat');return false" class="bg-primary-container text-on-primary px-6 py-2.5 rounded-full hover:opacity-80 transition-opacity shadow-[0_4px_20px_rgba(0,0,0,0.04)] active:scale-95 duration-200">Get Started</a>
+<button id="burger" onclick="toggleMobile()" class="md:hidden p-2 -mr-2 rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
+<span class="material-symbols-outlined text-on-surface">menu</span></button>
+</div></div>
+<!-- Mobile menu -->
+<div id="mobile-menu" class="md:hidden absolute top-20 left-0 right-0 bg-white/95 backdrop-blur-xl shadow-lg border-t border-surface-variant/30 px-8 py-6 flex flex-col gap-4 text-sm font-medium font-display z-40">
+<a href="#" onclick="nav('home');closeMobile();return false" class="nav-link py-2" data-page="home">Insights</a>
+<a href="#" onclick="nav('timeline');closeMobile();return false" class="nav-link py-2" data-page="timeline">Timeline</a>
+<a href="#" onclick="nav('guide');closeMobile();return false" class="nav-link py-2" data-page="guide">Guide</a>
+<a href="#" onclick="nav('faq');closeMobile();return false" class="nav-link py-2" data-page="faq">FAQ</a>
+<a href="#" onclick="nav('chat');closeMobile();return false" class="nav-link py-2" data-page="chat">Ask AI</a>
+</div></nav>"""
+
+FOOTER = """<footer class="bg-white w-full mt-12 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+<div class="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center py-16 px-8">
+<p class="text-xs tracking-wide uppercase font-semibold text-primary-container mb-6 md:mb-0">© <script>document.write(new Date().getFullYear())</script> ElectionIQ. Precision in Democracy.</p>
+<div class="flex items-center gap-8 text-xs tracking-wide uppercase font-semibold">
+<a href="#" class="text-slate-400 hover:text-primary-container transition-colors">Privacy</a>
+<a href="#" class="text-slate-400 hover:text-primary-container transition-colors">Terms</a>
+<a href="#" class="text-slate-400 hover:text-primary-container transition-colors">Methodology</a>
+<a href="#" class="text-slate-400 hover:text-primary-container transition-colors">Contact</a>
+</div></div></footer>"""
+
+HOME = """<section id="page-home" class="page flex-grow flex flex-col items-center justify-center px-8 pt-32 pb-32">
+<div class="max-w-[800px] w-full text-center space-y-12">
+<div class="space-y-6">
+<h1 class="font-display text-display text-primary-container">Understand your election.<br>Simply.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto">Ask anything about India's electoral process. Get clear, authoritative answers.</p>
+</div>
+<div class="relative w-full max-w-[640px] mx-auto group">
+<div class="absolute inset-0 bg-white/40 backdrop-blur-xl rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.08)] -z-10 transition-all duration-300 group-hover:shadow-[0_24px_48px_rgba(0,0,0,0.12)]"></div>
+<div class="flex items-center bg-surface-container-lowest/80 backdrop-blur-md rounded-full px-6 py-4 ring-1 ring-surface-variant/50 focus-within:ring-primary-container/20 transition-all duration-300">
+<span class="material-symbols-outlined text-outline mr-4">search</span>
+<input id="home-input" class="w-full bg-transparent border-none focus:ring-0 p-0 font-body-md text-body-md text-on-surface placeholder:text-outline/60 outline-none" placeholder="e.g., How do I register to vote in India?" type="text"/>
+<button id="home-send" class="ml-4 bg-primary-container text-on-primary rounded-full p-2 hover:opacity-80 transition-opacity active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">arrow_upward</span></button>
+</div></div>
+<div class="flex flex-wrap justify-center gap-3 pt-2">
+<button onclick="chip('How do I register to vote in India?')" class="bg-surface-container px-5 py-2.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 cursor-pointer">How do I register?</button>
+<button onclick="chip('What is an EVM and how does it work?')" class="bg-surface-container px-5 py-2.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 cursor-pointer">What is EVM?</button>
+<button onclick="chip('What should I do on voting day?')" class="bg-surface-container px-5 py-2.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 cursor-pointer">Voting Day</button>
+<button onclick="nav('timeline')" class="bg-surface-container text-on-surface px-6 py-2.5 rounded-full hover:opacity-80 transition-opacity active:scale-95 duration-200-container px-5 py-2.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 cursor-pointer">See Timeline →</button>
+</div></div></section>"""
+
+CHAT = """<section id="page-chat" class="page flex-grow flex-col" style="min-height:calc(100vh - 80px)">
+<header class="bg-white/80 backdrop-blur-md sticky top-[80px] z-40 shadow-[0_4px_20px_rgba(0,0,0,0.04)] h-16 flex items-center justify-between px-8 max-w-[1200px] w-full mx-auto">
+<button onclick="nav('home')" class="text-on-surface hover:opacity-80 transition-opacity p-2 -ml-2 rounded-full">
+<span class="material-symbols-outlined text-2xl">arrow_back</span></button>
+<h2 class="text-primary-container font-headline-md text-headline-md tracking-tighter">ElectionIQ Assistant</h2>
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span><span class="font-label-md text-label-md text-on-surface-variant">Online</span></div>
+</header>
+<main class="flex-grow flex flex-col max-w-[1200px] w-full mx-auto overflow-hidden relative" style="height:calc(100vh - 160px)">
+<div id="messages" class="flex-grow overflow-y-auto px-8 py-12 flex flex-col gap-8 pb-[140px]">
+<div class="flex justify-start">
+<div class="bg-surface-container text-on-surface rounded-xl rounded-tl-none py-4 px-6 max-w-[80%] md:max-w-[60%] shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<p class="font-body-md text-body-md">Hello! I'm ElectionIQ — your guide to India's election process. Ask me about voter registration, EVMs, polling day, or how results are declared. 🗳️</p>
+</div></div></div>
+<div class="absolute bottom-0 w-full px-8 py-6 bg-gradient-to-t from-background via-background to-transparent pt-12">
+<div class="max-w-[800px] mx-auto bg-white rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.08)] flex items-center p-2 pl-6">
+<input id="chat-input" aria-label="Message input" class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface placeholder-outline outline-none" placeholder="Ask about elections..." type="text"/>
+<button id="chat-send" class="bg-primary-container text-on-primary w-12 h-12 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity flex-shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">send</span></button>
+</div>
+<p class="text-center mt-3 font-label-sm text-label-sm text-on-surface-variant">ElectionIQ AI can make mistakes. Verify important information.</p>
+</div></main></section>"""
+
+TIMELINE_ITEMS = [
+    ("Phase 01","Jan 15","Election Announced","Official notification issued by the Election Commission of India, formalizing the schedule and activating the Model Code of Conduct."),
+    ("Phase 02","Feb 01","Voter Registration","The active period for citizens to verify, update, or submit new entries to the electoral roll via NVSP."),
+    ("Phase 03","Apr 10","Nominations Filed","Candidates submit formal paperwork to the Returning Officer declaring their intent to contest specific constituencies."),
+    ("Phase 04","Apr 15","Campaign Period","Authorized window for candidates and parties to publicly solicit votes. Model Code of Conduct strictly active."),
+    ("Phase 05","Jun 05","Polling Day","Registered electorate casts ballots at designated booths under comprehensive security measures using EVMs."),
+    ("Phase 06","Jun 08","Results Declared","Final tabulation of verified ballots and formal certification of elected representatives by ECI."),
+]
+
+def tl_item(phase, date, name, desc):
+    return f"""<div class="relative pb-16 last:pb-0 reveal group">
+<div class="absolute -left-[47px] top-6 w-4 h-4 bg-primary rounded-full ring-4 ring-background group-hover:scale-125 transition-transform duration-300 shadow-[0_0_15px_rgba(2,30,75,0.4)] z-20"></div>
+<div class="relative p-8 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:bg-white/50 hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-tr before:from-white/0 before:via-white/40 before:to-white/0 before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-700">
+<p class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2 font-bold relative z-10">{phase} • {date}</p>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-3 relative z-10">{name}</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed max-w-lg relative z-10">{desc}</p>
+</div>
+</div>"""
+
+TIMELINE = """<section id="page-timeline" class="page flex-grow relative overflow-hidden">
+<!-- Ambient Liquid Glass Blobs -->
+<div class="absolute top-0 left-[10%] w-[500px] h-[500px] bg-primary/10 rounded-full mix-blend-multiply filter blur-[100px] animate-blob pointer-events-none z-0"></div>
+<div class="absolute top-[20%] right-[10%] w-[400px] h-[400px] bg-[#FFE135]/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-2000 pointer-events-none z-0"></div>
+<div class="absolute bottom-[-10%] left-[40%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full mix-blend-multiply filter blur-[120px] animate-blob animation-delay-4000 pointer-events-none z-0"></div>
+
+<main class="flex-grow max-w-[1200px] mx-auto w-full px-8 py-16 relative z-10">
+<header class="mb-16 max-w-3xl">
+<h1 class="font-display text-display text-on-surface mb-6 relative z-10">Election Process</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant relative z-10">A definitive timeline of India's electoral cycle, as governed by the Election Commission of India (ECI).</p>
+</header>
+<div class="border-l-[2px] border-primary/20 pl-10 ml-[3px] relative">
+""" + "".join(tl_item(*x) for x in TIMELINE_ITEMS) + """
+</div></main></section>"""
+
+GUIDE_ITEMS = [
+    ("Check Registration","Verify your name on the official electoral roll at voters.eci.gov.in or via the Voter Helpline (1950) well before polling day."),
+    ("Find Polling Booth","Locate your designated polling station ahead of time using the ECI website or Voter Helpline app to streamline your route."),
+    ("Carry Valid ID","Bring your Voter ID (EPIC). Accepted alternatives: Aadhaar, PAN card, passport, driving licence, or MNREGA job card."),
+    ("Cast Vote on EVM","Enter the voting compartment and press the button adjacent to your chosen candidate's name on the Ballot Unit. A beep confirms your vote."),
+    ("Verify VVPAT Slip","Confirm your selection by reviewing the printed slip generated momentarily in the VVPAT viewing pane before it drops into the sealed box."),
+]
+
+NUMERALS = ["watermark-numeral","watermark-numeral-alt","watermark-numeral","watermark-numeral-small","watermark-numeral-small"]
+
+def guide_item(i, name, desc):
+    num_cls = NUMERALS[i]
+    if i == 2: # Immersive Step 3
+        return f"""<div class="group relative flex flex-col justify-center overflow-hidden p-16 -mx-8 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 hover:bg-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-700 ease-out min-h-[300px]">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {num_cls} font-display font-bold text-surface-container-highest opacity-30 group-hover:opacity-60 transition-opacity duration-1000 select-none pointer-events-none z-0">3</span>
+<div class="relative z-10 flex flex-col items-center text-center">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">{name}</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto">{desc}</p>
+</div></div>"""
+    
+    align = "flex-row" if i % 2 == 0 else "flex-row-reverse"
+    txt_align = "" if i % 2 == 0 else "items-end text-right"
+    return f"""<div class="group relative flex flex-col md:{align} items-center md:items-start gap-8 p-8 -mx-8 rounded-3xl bg-white/20 backdrop-blur-md border border-white/40 hover:bg-white/40 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.05)] transition-all duration-700 ease-out">
+<div class="md:w-1/3 flex justify-center relative z-10"><span class="{num_cls} font-display font-bold text-surface-container group-hover:text-surface-container-high transition-colors duration-700 select-none">{i+1}</span></div>
+<div class="md:w-2/3 flex flex-col justify-center {txt_align} pt-4 md:pt-8 relative z-10">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">{name}</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">{desc}</p>
+</div></div>"""
+
+GUIDE = """<section id="page-guide" class="page flex-grow relative overflow-hidden">
+<!-- Ambient Liquid Glass Blobs -->
+<div class="absolute top-[10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full mix-blend-multiply filter blur-[100px] animate-blob pointer-events-none z-0"></div>
+<div class="absolute top-[40%] right-[-5%] w-[400px] h-[400px] bg-[#FFE135]/15 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-2000 pointer-events-none z-0"></div>
+<div class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full mix-blend-multiply filter blur-[120px] animate-blob animation-delay-4000 pointer-events-none z-0"></div>
+
+<main class="w-full max-w-[1200px] mx-auto px-8 py-16 relative z-10">
+<header class="mb-16 relative">
+<h1 class="font-display text-display text-on-surface max-w-2xl">How to Vote</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-4 max-w-xl">A definitive guide to exercising your democratic right with precision and confidence.</p>
+</header>
+<div class="flex flex-col gap-32">
+""" + "".join(guide_item(i, n, d) for i,(n,d) in enumerate(GUIDE_ITEMS)) + """
+</div></main></section>"""
+
+FAQ_ITEMS = [
+    ("Who is eligible to vote in India?","Any Indian citizen aged 18 or above whose name appears on the electoral roll of their constituency is eligible to vote."),
+    ("What ID is accepted at polling booths?","Voter ID card (EPIC) is primary. Accepted alternatives: Aadhaar card, PAN card, passport, driving licence, and MNREGA job card."),
+    ("How does the EVM work?","The EVM has two units — a Control Unit with the polling officer and a Ballot Unit with the voter. Press the button next to your candidate's name; a beep confirms your vote is recorded."),
+    ("What if my name isn't on the voter list?","Visit your nearest Booth Level Officer (BLO) or apply online at voters.eci.gov.in to register or correct your details in the electoral roll."),
+    ("How and when are results announced?","Counting begins on the declared counting date. The ECI announces constituency-wise results progressively on results.eci.gov.in as counting continues throughout the day."),
+]
+FAQ_ANSWERS_JS = json.dumps(dict(FAQ_ITEMS), ensure_ascii=False)
+
+def faq_item(i, q, a):
+    expanded = ' rounded-lg bg-surface-container-low' if i == 0 else ' group cursor-pointer rounded-lg hover:bg-surface-container-low transition-colors'
+    icon = 'keyboard_arrow_down' if i == 0 else 'keyboard_arrow_right'
+    icon_cls = 'text-primary' if i == 0 else 'text-outline group-hover:text-primary'
+    answer = f'<div class="px-6 sm:px-8 pb-8 answer-box"><p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-3xl">{a}</p></div>' if i == 0 else ''
+    return f"""<div class="faq-item{expanded}" data-q="{q}">
+<div class="flex items-center justify-between py-6 px-6 sm:px-8 cursor-pointer" onclick="toggleFaq(this)">
+<h3 class="font-headline-md text-headline-md text-on-background pr-4">{q}</h3>
+<span class="material-symbols-outlined {icon_cls} flex-shrink-0">{icon}</span>
+</div>{answer}</div><div class="h-2"></div>"""
+
+FAQ = """<section id="page-faq" class="page flex-grow">
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-8 py-16">
+<div class="mb-12">
+<h1 class="font-display text-display text-on-background max-w-2xl">Common Questions</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-6 max-w-xl">Everything you need to know about navigating the electoral process and voting rights in India.</p>
+</div>
+<div class="max-w-4xl bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden p-4">
+""" + "".join(faq_item(i,q,a) for i,(q,a) in enumerate(FAQ_ITEMS)) + """
+</div></main></section>"""
+
+STYLES = """<style>
+.material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',sans-serif;background-color:#f9f9fb;color:#1a1c1d;-webkit-font-smoothing:antialiased}
+.page:not(.active){display:none !important}
+.page.active{display:flex !important;flex-direction:column;animation:pageFadeIn .3s ease both}
+@keyframes pageFadeIn{from{opacity:0}to{opacity:1}}
+.nav-link{color:#64748b;transition:color .2s}.nav-link:hover,.nav-link.active{color:#021e4b}
+.nav-link.active{position:relative}.nav-link.active::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:#021e4b;border-radius:50%}
+.watermark-numeral{font-size:clamp(8rem,15vw,16rem);line-height:.8;letter-spacing:-.05em}
+.watermark-numeral-alt{font-size:clamp(6rem,10vw,12rem);line-height:.8;letter-spacing:-.05em}
+.watermark-numeral-small{font-size:clamp(4rem,8vw,8rem);line-height:.8;letter-spacing:-.05em}
+.dot{width:8px;height:8px;background:#c5c6d0;border-radius:50%;animation:bounce .9s infinite ease-in-out}
+.dot:nth-child(2){animation-delay:.18s}.dot:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+#messages::-webkit-scrollbar{width:0}
+/* Mobile menu */
+#mobile-menu{transform:translateY(-100%);transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none}
+#mobile-menu.open{transform:translateY(0);opacity:1;pointer-events:auto}
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* AI chat markdown */
+.ai-msg p{margin:0 0 .5em}.ai-msg p:last-child{margin:0}
+.ai-msg strong{font-weight:600}
+.ai-msg ul,.ai-msg ol{margin:.5em 0;padding-left:1.4em;list-style-type:disc}
+.ai-msg li{margin:.2em 0}
+/* Focus polish */
+input:focus-visible{outline:2px solid #1d3461;outline-offset:2px;border-radius:4px}
+/* Liquid glass blobs */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+.animate-blob { animation: blob 10s infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+/* Custom scrollbar for dropdown */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+/* Hide Google Translate UI */
+.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+body { top: 0px !important; }
+#google_translate_element { display: none !important; }
+</style>"""
+
+JS = """<script>
+const API='';
+const CHAT_TIMEOUT_MS=30000;
+let history=[];
+let currentLanguage='English';
+
+function setLang(code, name) {
+  currentLanguage = name;
+  document.getElementById('current-lang-display').textContent = name;
+  const select = document.querySelector('.goog-te-combo');
+  if (select) {
+    select.value = code;
+    select.dispatchEvent(new Event('change'));
+  }
+}
+
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,en', autoDisplay: false}, 'google_translate_element');
+}
+
+document.addEventListener('mousemove', (e) => {
+  const glow = document.getElementById('mouse-glow');
+  if (!glow) return;
+  glow.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(255,225,53,0.15), transparent 40%)`;
+  glow.style.opacity = '1';
+});
+document.addEventListener('mouseleave', () => {
+  const glow = document.getElementById('mouse-glow');
+  if (glow) glow.style.opacity = '0';
+});
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(a=>{a.classList.toggle('active',a.dataset.page===page)});
+  window.scrollTo(0,0);
+  if(typeof runReveal==='function') runReveal();
+}
+function toggleMobile(){
+  const m=document.getElementById('mobile-menu');
+  m.classList.toggle('open');
+}
+function closeMobile(){
+  const m=document.getElementById('mobile-menu');
+  m.classList.remove('open');
+}
+function chip(msg){nav('chat');setTimeout(()=>send(msg),80);}
+document.getElementById('home-send').onclick=()=>{const v=document.getElementById('home-input').value.trim();if(v){document.getElementById('home-input').value='';chip(v);}};
+document.getElementById('home-input').onkeydown=e=>{if(e.key==='Enter')document.getElementById('home-send').click();};
+document.getElementById('chat-send').onclick=()=>{const i=document.getElementById('chat-input');const v=i.value.trim();if(v){i.value='';send(v);}};
+document.getElementById('chat-input').onkeydown=e=>{if(e.key==='Enter')document.getElementById('chat-send').click();};
+
+function parseMD(text){
+  let html = text.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
+  html = html.replace(/\\*(.*?)\\*/g, '<em>$1</em>');
+  html = html.replace(/\\n/g, '<br/>');
+  return html;
+}
+
+function addMsg(role,text){
+  const m=document.getElementById('messages');
+  const d=document.createElement('div');
+  d.className='flex '+(role==='user'?'justify-end':'justify-start animate-in fade-in slide-in-from-bottom-2 duration-300');
+  const b=document.createElement('div');
+  b.className=role==='user'?'bg-primary-container text-on-primary rounded-xl rounded-tr-none py-4 px-6 max-w-[80%] md:max-w-[60%] shadow-[0_4px_20px_rgba(0,0,0,0.04)] font-body-md text-body-md':'bg-surface-container text-on-surface rounded-xl rounded-tl-none py-4 px-6 max-w-[80%] md:max-w-[60%] shadow-[0_4px_20px_rgba(0,0,0,0.04)] font-body-md text-body-md ai-msg notranslate';
+  b.innerHTML=role==='user'?text:parseMD(text);
+  d.appendChild(b);m.appendChild(d);m.scrollTop=m.scrollHeight;return d;
+}
+function showTyping(){
+  const m=document.getElementById('messages');
+  const d=document.createElement('div');d.id='typing';d.className='flex justify-start';
+  d.innerHTML='<div class="bg-surface-container rounded-xl rounded-tl-none py-4 px-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"><div style="display:flex;gap:6px;align-items:center"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+async function send(text){
+  addMsg('user',text);showTyping();
+  const controller=new AbortController();
+  const timeoutId=setTimeout(()=>controller.abort(),CHAT_TIMEOUT_MS);
+  try{
+    const r=await fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history,user_message:text,language:currentLanguage}),signal:controller.signal});
+    const data=await r.json().catch(()=>({detail:'The server returned an unreadable response.'}));
+    hideTyping();
+    if(!r.ok){
+      addMsg('ai',data.detail||'The server could not answer right now. Please try again.');
+      return;
+    }
+    const reply=data.response||'Sorry, something went wrong.';
+    addMsg('ai',reply);
+    history.push({role:'user',content:text});
+    history.push({role:'model',content:reply});
+  }catch(e){
+    hideTyping();
+    const message=e.name==='AbortError'
+      ?'The request timed out. Please try again in a moment.'
+      :'Could not reach the server. Make sure the backend is running.';
+    addMsg('ai',message);
+  }finally{
+    clearTimeout(timeoutId);
+  }
+}
+function toggleFaq(header){
+  const item=header.closest('.faq-item');
+  const q=item.getAttribute('data-q');
+  const isOpen=item.querySelector('.answer-box');
+  document.querySelectorAll('.faq-item').forEach(i=>{
+    const ans=i.querySelector('.answer-box');
+    if(ans){i.removeChild(ans);}
+    i.classList.remove('bg-surface-container-low');
+    i.classList.add('group','cursor-pointer');
+    const icon=i.querySelector('.material-symbols-outlined');
+    if(icon){icon.textContent='keyboard_arrow_right';icon.className='material-symbols-outlined text-outline group-hover:text-primary flex-shrink-0';}
+  });
+  if(!isOpen){
+    const answers=""" + FAQ_ANSWERS_JS + """;
+    const a=document.createElement('div');a.className='px-6 sm:px-8 pb-8 answer-box';
+    a.style.animation='fadeSlideUp .3s ease both';
+    a.innerHTML='<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-3xl">'+(answers[q]||'')+'</p>';
+    item.appendChild(a);
+    item.classList.add('bg-surface-container-low');item.classList.remove('group','cursor-pointer');
+    const icon=item.querySelector('.material-symbols-outlined');
+    if(icon){icon.textContent='keyboard_arrow_down';icon.className='material-symbols-outlined text-primary flex-shrink-0';}
+  }
+}
+function runReveal(){
+  document.querySelectorAll('.reveal').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight-60) el.classList.add('visible');
+  });
+}
+window.addEventListener('scroll',runReveal,{passive:true});
+
+const styleSheet=document.createElement('style');
+styleSheet.textContent='@keyframes fadeSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(styleSheet);
+
+document.addEventListener('DOMContentLoaded',()=>{nav('home');runReveal();});
+</script>"""
+
+HTML = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ElectionIQ — Understand your election</title>
+<meta name="description" content="ElectionIQ helps Indian citizens understand the election process — voter registration, EVMs, polling day, and results."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">{TWCFG}</script>
+{STYLES}
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col relative">
+<div id="google_translate_element"></div>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<div id="mouse-glow" class="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300 opacity-0 mix-blend-multiply" style="background: radial-gradient(600px circle at 0px 0px, rgba(255,225,53,0.15), transparent 40%);"></div>
+{NAVBAR}
+{HOME}
+{CHAT}
+{TIMELINE}
+{GUIDE}
+{FAQ}
+{FOOTER}
+{JS}
+</body>
+</html>"""
+
+with open('index.html','w',encoding='utf-8') as f:
+    f.write(HTML)
+print(f"Done — {len(HTML):,} chars")
