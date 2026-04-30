@@ -66,6 +66,16 @@ Get a free key at: [https://aistudio.google.com/app/apikey](https://aistudio.goo
 
 ---
 
+## 🛡️ Security Note
+
+This repository uses **environment variables** to keep API keys secure:
+
+1.  **Never commit your `.env` file**: The `.gitignore` in this repo is configured to prevent `.env` from being uploaded.
+2.  **API Key Safety**: Your Gemini API key should stay on your local machine or be set as a "Secret" in your deployment platform (like Google Cloud Run or GitHub Secrets).
+3.  **Template**: Use `.env.example` as a starting point for your local environment.
+
+---
+
 ## Docker (Local)
 
 ```bash

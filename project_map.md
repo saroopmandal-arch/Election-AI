@@ -46,10 +46,9 @@ This document provides a comprehensive overview of the ElectionIQ codebase to as
 - [x] Added interactive dynamic mouse-glow effect (nano banana theme).
 - [x] Added dynamic multi-language support (12 Indian languages) via custom UI + AI backend.
 
-## Deployment
-- **Local**: `uvicorn main:app --reload --port 8080` or `start_electioniq.bat`.
-- **Docker**: `docker build -t electioniq . && docker run -p 8080:8080 -e GEMINI_API_KEY=xxx electioniq`.
-- **Cloud Run**: `gcloud run deploy electioniq --source . --platform managed --region asia-south1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=xxx`.
+## GitHub Repository
+- **URL**: [https://github.com/saroopmandal-arch/Election-AI](https://github.com/saroopmandal-arch/Election-AI)
+- **Security**: `.env` is ignored via `.gitignore`. Users must clone and create their own `.env` using `.env.example`.
 
 ## Status: COMPLETE ✅
 - [x] Backend routing fixed (shadowing issue resolved).
@@ -59,6 +58,7 @@ This document provides a comprehensive overview of the ElectionIQ codebase to as
 - [x] UI polish pass applied (transitions, mobile menu, scroll-reveal, markdown chat).
 - [x] Dockerfile optimized for Cloud Run ($PORT support, .dockerignore).
 - [x] README has full Cloud Run deployment guide.
+- [x] **Uploaded to GitHub** (Public).
 
 ## Maintenance Notes
 - **To update the UI**: Modify the string constants or logic in `gen.py`, then run `python gen.py`. Note: The latest UI polish was applied directly to `index.html` — sync `gen.py` if needed.
