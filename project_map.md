@@ -60,6 +60,7 @@ This document provides a comprehensive overview of the ElectionIQ codebase to as
 - [x] README has full Cloud Run deployment guide.
 - [x] **Uploaded to GitHub** (Public).
 - [x] **Vercel Configuration**: Added `vercel.json` for Serverless FastAPI support.
+- [x] **Live Deployment**: [https://election-ai-one.vercel.app](https://election-ai-one.vercel.app)
 
 ## Maintenance Notes
 - **To update the UI**: Modify the string constants or logic in `gen.py`, then run `python gen.py`. Note: The latest UI polish was applied directly to `index.html` — sync `gen.py` if needed.
